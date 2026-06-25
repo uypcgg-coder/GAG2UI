@@ -1,305 +1,115 @@
 settings().Rendering.QualityLevel = 1
-
 local p = game:GetService("Players").LocalPlayer
-
 local gardens = game:GetService("Workspace"):FindFirstChild("Gardens")
 
-
-
 -- Variabel global buat status tombol (default: true / visual hilang)
-
 _G.HideMyPlants = true 
 
-
-
 -- ====================================================================
-
--- COMBO 1: MODIFIKASI LANTAI (TOPLAYER TRANSPARAN, SISANYA HAPUS)
-
+-- FUNGSI GEMBOK VISUAL TANAMAN LU BIAR GA KENA BYPASS (Murni task.wait)
 -- ====================================================================
-
-task.spawn(function()
-
-    local partMauDihapus = {"midlayer", "center", "bottomlayer"}
-
-    
-
-    local function eksekusiLantai(obj)
-
-        if obj:IsA("BasePart") then
-
-            local namaObjekKecil = string.lower(obj.Name)
-
-            
-
-            -- TopLayer dibikin transparan biar tembus pandang tapi ga jatoh
-
-            if namaObjekKecil == "toplayer" then
-
-                obj.Transparency = 1
-
-                obj:GetPropertyChangedSignal("Transparency"):Connect(function()
-
-                    if obj.Transparency ~= 1 then
-
-                        obj.Transparency = 1
-
-                    end
-
-                end)
-
-                
-
-            -- Layer bawahnya dihapus total biar enteng
-
-            elseif table.find(partMauDihapus, namaObjekKecil) then
-
-                obj:Destroy()
-
-            end
-
-        end
-
-    end
-
-
-
-    for _, obj in ipairs(game:GetService("Workspace"):GetDescendants()) do
-
-        eksekusiLantai(obj)
-
-    end
-
-
-
-    game:GetService("Workspace").DescendantAdded:Connect(function(obj)
-
-        task.wait()
-
-        if obj.Parent then
-
-            eksekusiLantai(obj)
-
-        end
-
-    end)
-
-end)
-
-
-
--- ====================================================================
-
--- COMBO 2: FUNGSI GEMBOK VISUAL TANAMAN LU (NUNGGU DETIKAN AMAN)
-
--- ====================================================================
-
 local function ilanginVisualTumbuhan(plot)
-
     local plantsFolder = plot:WaitForChild("Plants", 5)
-
     if plantsFolder then
-
-        task.wait() -- Jeda aman 5 detik khusus buat tanaman Lu sendiri
-
+        task.wait(5) -- Jeda aman 5 detik khusus buat tanaman Lu sendiri
         
-
         local function aturTransparansi(v)
-
             if v:IsA("BasePart") or v:IsA("Decal") or v:IsA("Texture") then
-
                 v.Transparency = _G.HideMyPlants and 1 or 0
-
                 
-
                 v:GetPropertyChangedSignal("Transparency"):Connect(function()
-
                     local target = _G.HideMyPlants and 1 or 0
-
                     if v.Transparency ~= target then
-
                         v.Transparency = target
-
                     end
-
                 end)
-
             end
-
         end
-
-
 
         for _, obj in ipairs(plantsFolder:GetDescendants()) do
-
             aturTransparansi(obj)
-
         end
-
-
 
         plantsFolder.DescendantAdded:Connect(function(obj)
-
             task.wait()
-
             aturTransparansi(obj)
-
         end)
-
     end
-
 end
 
-
-
 -- ====================================================================
-
--- COMBO 3: LOGIC UTAMA LAHAN (INSTANT)
-
+-- LOGIC UTAMA LAHAN (INSTANT TANPA DELAY)
 -- ====================================================================
-
 local function filterLahan(plot)
-
     task.spawn(function()
-
         local ownerId = plot:GetAttribute("OwnerUserId")
-
         while not ownerId and plot.Parent do
-
             plot:GetAttributeChangedSignal("OwnerUserId"):Wait()
-
             ownerId = plot:GetAttribute("OwnerUserId")
-
         end
-
         
-
         if ownerId and tonumber(ownerId) ~= p.UserId then
-
-            plot:Destroy() -- Kebantai instant lahan orang lain
-
+            plot:Destroy() -- Kebantai instant lahan orang lain biar anti-lag
         elseif ownerId and tonumber(ownerId) == p.UserId then
-
             ilanginVisualTumbuhan(plot) 
-
         end
-
     end)
-
 end
-
-
 
 if gardens then
-
     for _, plot in ipairs(gardens:GetChildren()) do filterLahan(plot) end
-
     gardens.ChildAdded:Connect(filterLahan)
-
 end
 
-
-
 -- ====================================================================
-
--- COMBO 4: SCRIPT TOMBOL UI ON/OFF (Bisa Di-drag)
-
+-- SCRIPT TOMBOL UI ON/OFF (Bisa Di-drag / Geser)
 -- ====================================================================
-
 local ScreenGui = Instance.new("ScreenGui")
-
 local ToggleBtn = Instance.new("TextButton")
-
 local UICorner = Instance.new("UICorner")
 
-
-
 ScreenGui.Parent = game:GetService("CoreGui")
-
 ScreenGui.ResetOnSpawn = false
 
-
-
 ToggleBtn.Name = "PlantToggle"
-
 ToggleBtn.Parent = ScreenGui
-
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
-
 ToggleBtn.Position = UDim2.new(0.1, 0, 0.15, 0)
-
 ToggleBtn.Size = UDim2.new(0, 130, 0, 40)
-
 ToggleBtn.Font = Enum.Font.SourceSansBold
-
 ToggleBtn.Text = "VISUAL MY PLANT: OFF"
-
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 ToggleBtn.TextSize = 14.0
-
 ToggleBtn.Active = true
-
 ToggleBtn.Draggable = true
 
-
-
 UICorner.CornerRadius = UDim.new(0, 8)
-
 UICorner.Parent = ToggleBtn
 
-
-
 ToggleBtn.MouseButton1Click:Connect(function()
-
     _G.HideMyPlants = not _G.HideMyPlants
-
     
-
     if _G.HideMyPlants then
-
         ToggleBtn.Text = "VISUAL MY PLANT: OFF"
-
         ToggleBtn.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
-
     else
-
         ToggleBtn.Text = "VISUAL MY PLANT: ON"
-
         ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
-
     end
-
     
-
     if gardens then
-
         for _, plot in ipairs(gardens:GetChildren()) do
-
             local ownerId = plot:GetAttribute("OwnerUserId")
-
             if ownerId and tonumber(ownerId) == p.UserId then
-
                 local plantsFolder = plot:FindFirstChild("Plants")
-
                 if plantsFolder then
-
                     for _, v in ipairs(plantsFolder:GetDescendants()) do
-
                         if v:IsA("BasePart") or v:IsA("Decal") or v:IsA("Texture") then
-
                             v.Transparency = _G.HideMyPlants and 1 or 0
-
                         end
-
                     end
-
                 end
-
             end
-
         end
-
     end
-
 end)
