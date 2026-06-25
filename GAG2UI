@@ -13,7 +13,7 @@ local function ilanginVisualTumbuhan(plot)
         -- UTAMAKAN DI SINI: Nunggu murni pake task.wait sebelum ilang
         -- Ganti angka 5 di bawah (detik) kalau berasa kurang lama/kecepetan
         -- ==========================================================
-        task.wait(60) 
+        task.wait(30) 
         
         local function aturTransparansi(v)
             if v:IsA("BasePart") or v:IsA("Decal") or v:IsA("Texture") then
