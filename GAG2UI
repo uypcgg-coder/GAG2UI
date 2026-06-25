@@ -100,7 +100,7 @@ local function ilanginVisualTumbuhan(plot)
 
     if plantsFolder then
 
-        task.wait(30) -- Jeda aman 5 detik khusus buat tanaman Lu sendiri
+        task.wait() -- Jeda aman 5 detik khusus buat tanaman Lu sendiri
 
         
 
