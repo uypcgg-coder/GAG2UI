@@ -5,12 +5,16 @@ local gardens = game:GetService("Workspace"):FindFirstChild("Gardens")
 -- Variabel global buat status tombol (default: true / visual hilang)
 _G.HideMyPlants = true 
 
--- Fungsi gembok visual tumbuhan LU SENDIRI (Nunggu Fully Load)
+-- Fungsi gembok visual tumbuhan LU SENDIRI (Nunggu Fully Load Pakem)
 local function ilanginVisualTumbuhan(plot)
     local plantsFolder = plot:WaitForChild("Plants", 5)
     if plantsFolder then
-        -- DI SINI: Khusus nahan visual tanaman Lu sampai game kelar loading
-        repeat task.wait() until game:IsLoaded()
+        -- LOOP PAKEM: Cek terus tiap 1 detik sampai game terkonfirmasi FULLY LOADED
+        while not game:IsLoaded() do
+            task.wait(1)
+        end
+        -- Kasih jeda aman 2 detik biar tanaman beneran ke-spawn sempurna di client Lu
+        task.wait(2)
         
         local function aturTransparansi(v)
             if v:IsA("BasePart") or v:IsA("Decal") or v:IsA("Texture") then
@@ -25,6 +29,7 @@ local function ilanginVisualTumbuhan(plot)
             end
         end
 
+        -- Eksekusi hilangkan visual
         for _, obj in ipairs(plantsFolder:GetDescendants()) do
             aturTransparansi(obj)
         end
@@ -36,7 +41,7 @@ local function ilanginVisualTumbuhan(plot)
     end
 end
 
--- LOGIC UTAMA (Langsung jalan pas masuk game)
+-- LOGIC UTAMA (Tetap INSTANT pas masuk game)
 local function filterLahan(plot)
     task.spawn(function()
         local ownerId = plot:GetAttribute("OwnerUserId")
@@ -45,12 +50,10 @@ local function filterLahan(plot)
             ownerId = plot:GetAttribute("OwnerUserId")
         end
         
-        -- Lahan orang lain langsung dihapus INSTANT tanpa nunggu loading
         if ownerId and tonumber(ownerId) ~= p.UserId then
-            plot:Destroy()
-        -- Lahan Lu ketemu? Panggil fungsi ilangin visual (yang nunggu fully load di dalam)
+            plot:Destroy() -- Langsung hapus lahan orang lain
         elseif ownerId and tonumber(ownerId) == p.UserId then
-            ilanginVisualTumbuhan(plot)
+            ilanginVisualTumbuhan(plot) -- Tahan visual tanaman Lu pakai loop checker di atas
         end
     end)
 end
@@ -61,7 +64,7 @@ if gardens then
 end
 
 -- ====================================================================
--- SCRIPT MEMBUAT TOMBOL UI ON/OFF (Langsung muncul pas masuk game)
+-- SCRIPT MEMBUAT TOMBOL UI ON/OFF (Langsung muncul)
 -- ====================================================================
 local ScreenGui = Instance.new("ScreenGui")
 local ToggleBtn = Instance.new("TextButton")
