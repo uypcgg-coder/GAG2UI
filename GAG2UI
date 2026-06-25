@@ -11,7 +11,7 @@ _G.HideMyPlants = true
 local function ilanginVisualTumbuhan(plot)
     local plantsFolder = plot:WaitForChild("Plants", 5)
     if plantsFolder then
-        task.wait(5) -- Jeda aman 5 detik khusus buat tanaman Lu sendiri
+        task.wait(30) -- Jeda aman 5 detik khusus buat tanaman Lu sendiri
         
         local function aturTransparansi(v)
             if v:IsA("BasePart") or v:IsA("Decal") or v:IsA("Texture") then
