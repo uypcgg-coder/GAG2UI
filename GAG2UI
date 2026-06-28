@@ -16,7 +16,7 @@ local function optimalkanTanamanGue(plot)
 
     if plantsFolder then
 
-        task.wait(5) -- Jeda aman 5 detik biar data kelar ngerender
+        task.wait(60) -- Jeda aman 5 detik biar data kelar ngerender
 
         local function hilangkanBuah(v)
 
