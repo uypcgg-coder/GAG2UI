@@ -3,25 +3,57 @@ local p = game:GetService("Players").LocalPlayer
 local gardens = game:GetService("Workspace"):FindFirstChild("Gardens")
 
 -- ====================================================================
--- LOGIC UTAMA LAHAN (MURNI HANCURIN LAHAN ORANG LAIN BIAR ANTI-LAG)
+-- FUNGSI PRETENDER TANAMAN (HAPUS MESH, SISA KOTAK IJO POLOS KELIHATAN)
+-- ====================================================================
+local function optimalkanTanamanGue(plot)
+    local plantsFolder = plot:WaitForChild("Plants", 5)
+    if plantsFolder then
+        task.wait(5) -- Jeda aman 5 detik
+        
+        local function bersihkanVisual(v)
+            -- Daun, buah meliuk, gambar, dan efek yang bikin lag KITA HANCURKAN
+            if v:IsA("Decal") or v:IsA("Texture") or v:IsA("SpecialMesh") or v:IsA("ParticleEmitter") then
+                v:Destroy()
+            -- Hitbox utamanya KITA SUTRADARAI JADI KOTAK POLOS KELIHATAN
+            elseif v:IsA("BasePart") then
+                v.Transparency = 0 -- 0 artinya KELIHATAN, ga transparan lagi!
+                v.Material = Enum.Material.SmoothPlastic -- Paling enteng
+                v.Color = Color3.fromRGB(40, 167, 69) -- Warna Hijau biar enak dilihat
+            end
+        end
+
+        -- Eksekusi tanaman awal
+        for _, obj in ipairs(plantsFolder:GetDescendants()) do
+            bersihkanVisual(obj)
+        end
+
+        -- Eksekusi tanaman baru yang tumbuh belakangan
+        plantsFolder.DescendantAdded:Connect(function(obj)
+            task.wait()
+            bersihkanVisual(obj)
+        end)
+    end
+end
+
+-- ====================================================================
+-- LOGIC UTAMA LAHAN (INSTANT BANTAI LAHAN ORANG)
 -- ====================================================================
 local function filterLahan(plot)
     task.spawn(function()
         local ownerId = plot:GetAttribute("OwnerUserId")
-        -- Tunggu sampai data OwnerUserId nongol dari server
         while not ownerId and plot.Parent do
             plot:GetAttributeChangedSignal("OwnerUserId"):Wait()
             ownerId = plot:GetAttribute("OwnerUserId")
         end
         
-        -- Kalo lahan punya orang lain, langsung babat habis!
         if ownerId and tonumber(ownerId) ~= p.UserId then
-            plot:Destroy()
+            plot:Destroy() -- Lahan orang lain lenyap instant
+        elseif ownerId and tonumber(ownerId) == p.UserId then
+            optimalkanTanamanGue(plot) -- Lahan Lu jadi kotak ijo enteng
         end
     end)
 end
 
--- Jalankan fungsi untuk lahan yang udah ada dan lahan baru yang bakal muncul
 if gardens then
     for _, plot in ipairs(gardens:GetChildren()) do filterLahan(plot) end
     gardens.ChildAdded:Connect(filterLahan)
