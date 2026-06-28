@@ -1,60 +1,113 @@
 settings().Rendering.QualityLevel = 1
+
 local p = game:GetService("Players").LocalPlayer
+
 local gardens = game:GetService("Workspace"):FindFirstChild("Gardens")
 
 -- ====================================================================
--- FUNGSI PRETENDER TANAMAN (HAPUS MESH, SISA KOTAK IJO POLOS KELIHATAN)
+
+-- FUNGSI MODIF BUAH JADI KECIL (ILANG DARI MATA, TETEP BISA DIPANEN)
+
 -- ====================================================================
+
 local function optimalkanTanamanGue(plot)
+
     local plantsFolder = plot:WaitForChild("Plants", 5)
+
     if plantsFolder then
-        task.wait(5) -- Jeda aman 5 detik
-        
-        local function bersihkanVisual(v)
-            -- Daun, buah meliuk, gambar, dan efek yang bikin lag KITA HANCURKAN
+
+        task.wait(5) -- Jeda aman 5 detik biar data kelar ngerender
+
+        local function hilangkanBuah(v)
+
+            -- Daun, efek mesh meliuk, gambar, dan partikel tetep kita DESTROY biar enteng
+
             if v:IsA("Decal") or v:IsA("Texture") or v:IsA("SpecialMesh") or v:IsA("ParticleEmitter") then
+
                 v:Destroy()
-            -- Hitbox utamanya KITA SUTRADARAI JADI KOTAK POLOS KELIHATAN
+
+            -- Nah, Hitbox buah/pohonnya jangan di-destroy/transparan, tapi DIKECILIN JADI NOL
+
             elseif v:IsA("BasePart") then
-                v.Transparency = 0 -- 0 artinya KELIHATAN, ga transparan lagi!
-                v.Material = Enum.Material.SmoothPlastic -- Paling enteng
-                v.Color = Color3.fromRGB(40, 167, 69) -- Warna Hijau biar enak dilihat
+
+                v.Size = Vector3.new(0, 0, 0) -- Ukuran jadi zonk/hilang dari pandangan!
+
+                v.Material = Enum.Material.SmoothPlastic
+
             end
+
         end
 
-        -- Eksekusi tanaman awal
+
+
+        -- Eksekusi buah yang udah ada
+
         for _, obj in ipairs(plantsFolder:GetDescendants()) do
-            bersihkanVisual(obj)
+
+            hilangkanBuah(obj)
+
         end
 
-        -- Eksekusi tanaman baru yang tumbuh belakangan
+
+
+        -- Eksekusi buah baru yang mendadak tumbuh belakangan
+
         plantsFolder.DescendantAdded:Connect(function(obj)
+
             task.wait()
-            bersihkanVisual(obj)
+
+            hilangkanBuah(obj)
+
         end)
+
     end
+
 end
 
+
+
 -- ====================================================================
+
 -- LOGIC UTAMA LAHAN (INSTANT BANTAI LAHAN ORANG)
+
 -- ====================================================================
+
 local function filterLahan(plot)
+
     task.spawn(function()
+
         local ownerId = plot:GetAttribute("OwnerUserId")
+
         while not ownerId and plot.Parent do
+
             plot:GetAttributeChangedSignal("OwnerUserId"):Wait()
+
             ownerId = plot:GetAttribute("OwnerUserId")
+
         end
+
         
+
         if ownerId and tonumber(ownerId) ~= p.UserId then
+
             plot:Destroy() -- Lahan orang lain lenyap instant
+
         elseif ownerId and tonumber(ownerId) == p.UserId then
-            optimalkanTanamanGue(plot) -- Lahan Lu jadi kotak ijo enteng
+
+            optimalkanTanamanGue(plot) -- Lahan Lu buahnya auto-menyusut ilang
+
         end
+
     end)
+
 end
+
+
 
 if gardens then
+
     for _, plot in ipairs(gardens:GetChildren()) do filterLahan(plot) end
+
     gardens.ChildAdded:Connect(filterLahan)
+
 end
